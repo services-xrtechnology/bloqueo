@@ -27,6 +27,9 @@ Funciona consultando al servidor principal via API usando el db_name.
 
         # Data
         'data/ir_config_parameter.xml',
+
+        # Views
+        'views/ir_module_views.xml',
     ],
     'installable': True,
     'application': False,
