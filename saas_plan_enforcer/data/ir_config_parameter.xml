@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- URL del servidor principal para consultar límites -->
+        <record id="saas_master_url_config" model="ir.config_parameter">
+            <field name="key">saas.master.url</field>
+            <field name="value">https://bfb77f22cc70.ngrok-free.app</field>
+        </record>
+
+        <!-- Nota: URL actual apunta a ngrok tunnel del servidor principal (puerto 8069) -->
+        <!-- Para producción: Cambiar a la URL real del servidor principal -->
+    </data>
+</odoo>
