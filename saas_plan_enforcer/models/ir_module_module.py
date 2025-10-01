@@ -40,43 +40,77 @@ class IrModuleModule(models.Model):
 
         return super().button_immediate_uninstall()
 
-    def button_immediate_install(self):
+    def button_install(self):
         """
-        Hook al instalar módulo - validar que esté permitido según el plan.
+        Hook al marcar módulo para instalar - validar módulo Y sus dependencias.
+        Este método se ejecuta ANTES de instalar, incluyendo dependencias.
         """
         for module in self:
-            try:
-                # Obtener límites del plan
-                limits = self.env['saas.plan.manager'].get_plan_limits()
-                blocked_modules = limits.get('blocked_modules', [])
+            self._validate_module_installation(module)
+        return super().button_install()
 
-                if blocked_modules and self._is_module_blocked(module.name, blocked_modules):
-                    # Buscar en qué plan está disponible
-                    available_in = self._get_plan_availability(module.name)
+    def button_immediate_install(self):
+        """
+        Hook al instalar módulo inmediatamente - validar que esté permitido según el plan.
+        """
+        for module in self:
+            self._validate_module_installation(module)
+        return super().button_immediate_install()
 
+    def _validate_module_installation(self, module):
+        """
+        Validar si un módulo puede ser instalado según el plan.
+        También valida las dependencias del módulo.
+        """
+        try:
+            # Obtener límites del plan
+            limits = self.env['saas.plan.manager'].get_plan_limits()
+            blocked_modules = limits.get('blocked_modules', [])
+
+            # Validar el módulo principal
+            if blocked_modules and self._is_module_blocked(module.name, blocked_modules):
+                available_in = self._get_plan_availability(module.name)
+                raise UserError(_(
+                    '❌ Módulo No Disponible en tu Plan\n\n'
+                    'El módulo "%s" no está incluido en tu plan actual.\n\n'
+                    '%s\n\n'
+                    '💡 Actualiza tu plan para acceder a este módulo.'
+                ) % (module.shortdesc or module.name, available_in))
+
+            # Validar DEPENDENCIAS del módulo
+            if module.dependencies_id:
+                blocked_dependencies = []
+
+                for dep in module.dependencies_id:
+                    dep_module_name = dep.name
+
+                    # Verificar si la dependencia está bloqueada
+                    if self._is_module_blocked(dep_module_name, blocked_modules):
+                        dep_module = self.search([('name', '=', dep_module_name)], limit=1)
+                        blocked_dependencies.append(
+                            f"• {dep_module.shortdesc or dep_module_name}"
+                        )
+
+                # Si hay dependencias bloqueadas, rechazar instalación
+                if blocked_dependencies:
                     raise UserError(_(
-                        '❌ Módulo No Disponible en tu Plan\n\n'
-                        'El módulo "%s" no está incluido en tu plan actual.\n\n'
+                        '❌ No Puedes Instalar Este Módulo\n\n'
+                        'El módulo "%s" requiere los siguientes módulos\n'
+                        'que NO están incluidos en tu plan:\n\n'
                         '%s\n\n'
-                        '💡 Opciones:\n'
-                        '• Actualiza tu plan para acceder a este módulo\n'
-                        '• Contacta a soporte para más información\n\n'
-                        'Visita tu portal de cliente para cambiar de plan.'
+                        '💡 Actualiza tu plan para acceder a estos módulos.'
                     ) % (
                         module.shortdesc or module.name,
-                        available_in
+                        '\n'.join(blocked_dependencies)
                     ))
 
-                _logger.info(f"✅ Module installation allowed: {module.name}")
+            _logger.info(f"✅ Module and dependencies allowed: {module.name}")
 
-            except UserError:
-                raise  # Re-raise UserError
-            except Exception as e:
-                # Si falla consulta, loggear pero permitir (fail-open para no bloquear operación)
-                _logger.error(f"Error checking module limit for {module.name}: {str(e)}")
-                _logger.warning(f"⚠️ Allowing module installation due to limit check failure")
-
-        return super().button_immediate_install()
+        except UserError:
+            raise
+        except Exception as e:
+            _logger.error(f"Error checking module limit for {module.name}: {str(e)}")
+            _logger.warning(f"⚠️ Allowing module installation due to limit check failure")
 
     def _is_module_blocked(self, module_name, blocked_list):
         """
