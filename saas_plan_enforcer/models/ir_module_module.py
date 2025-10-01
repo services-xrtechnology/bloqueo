@@ -180,9 +180,9 @@ class IrModuleModule(models.Model):
         """
         Acción para mostrar información del plan actual.
         """
-        limits = self.get_plan_limits(force_refresh=True)
+        limits = self.env['saas.plan.manager'].get_plan_limits(force_refresh=True)
 
-        cache = self.search([], limit=1)
+        cache = self.env['saas.plan.manager'].search([], limit=1)
         plan_name = cache.cached_plan_name if cache else 'Unknown'
 
         message = _(
