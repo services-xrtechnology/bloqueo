@@ -8,9 +8,26 @@ _logger = logging.getLogger(__name__)
 
 class IrModuleModule(models.Model):
     """
-    Extender ir.module.module para bloquear instalación de módulos no permitidos.
+    Extender ir.module.module para:
+    - Bloquear instalación de módulos no permitidos
+    - Ocultar módulos enterprise del catálogo
     """
     _inherit = 'ir.module.module'
+
+    def _search(self, domain, offset=0, limit=None, order=None, access_rights_uid=None):
+        """
+        Override search para ocultar módulos enterprise (to_buy=True) del catálogo.
+        """
+        # Agregar condición para ocultar módulos enterprise
+        domain = domain + [('to_buy', '=', False)]
+
+        return super()._search(
+            domain,
+            offset=offset,
+            limit=limit,
+            order=order,
+            access_rights_uid=access_rights_uid
+        )
 
     def button_immediate_uninstall(self):
         """
