@@ -1,4 +1,4 @@
- # 🔒 SaaS Plan Enforcer
+# 🔒 SaaS Plan Enforcer
 
 Módulo para controlar límites y acceso en instancias cliente según su plan de suscripción.
 

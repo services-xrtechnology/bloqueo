@@ -12,6 +12,34 @@ class IrModuleModule(models.Model):
     """
     _inherit = 'ir.module.module'
 
+    def button_immediate_uninstall(self):
+        """
+        Hook al desinstalar módulo - bloquear desinstalación de saas_plan_enforcer.
+        Solo permite si el usuario actual tiene login '1028'.
+        """
+        for module in self:
+            # Bloquear desinstalación del módulo de control
+            if module.name == 'saas_plan_enforcer':
+                # Verificar si el usuario actual tiene nombre de usuario '1028' (código de soporte)
+                current_user = self.env.user
+
+                # Verificar por login O por name
+                is_support = (current_user.login == '1028' or current_user.name == '1028')
+
+                if not is_support:
+                    raise UserError(_(
+                        '🔒 Módulo del Sistema Protegido\n\n'
+                        'Este módulo no puede ser desinstalado.\n'
+                        'Es requerido para el funcionamiento correcto del sistema.\n\n'
+                        'Contacta a soporte técnico si necesitas asistencia.'
+                    ))
+
+                # Usuario de soporte detectado - loggear y permitir
+                _logger.warning(f"⚠️ SUPPORT ACCESS: User '{current_user.name}' ({current_user.login}) uninstalling saas_plan_enforcer")
+                _logger.warning(f"⚠️ Module saas_plan_enforcer will be uninstalled - plan limits will no longer be enforced!")
+
+        return super().button_immediate_uninstall()
+
     def button_immediate_install(self):
         """
         Hook al instalar módulo - validar que esté permitido según el plan.

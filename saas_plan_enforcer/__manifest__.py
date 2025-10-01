@@ -27,9 +27,6 @@ Funciona consultando al servidor principal via API usando el db_name.
 
         # Data
         'data/ir_config_parameter.xml',
-
-        # Views
-        'views/saas_plan_manager_views.xml',
     ],
     'installable': True,
     'application': False,
