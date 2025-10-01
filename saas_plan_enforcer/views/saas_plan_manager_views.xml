@@ -32,7 +32,8 @@
                             The cache refreshes automatically every hour or when you click "Refresh Limits".
                         </p>
                         <p>
-                            <strong>Current database:</strong> <t t-esc="env.cr.dbname"/>
+                            The system automatically identifies this instance using its database name
+                            to retrieve the correct plan limits.
                         </p>
                     </div>
                 </sheet>
