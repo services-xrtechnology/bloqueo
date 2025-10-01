@@ -14,19 +14,28 @@ class IrModuleModule(models.Model):
     """
     _inherit = 'ir.module.module'
 
-    def _search(self, domain, offset=0, limit=None, order=None, access_rights_uid=None):
+    @api.model
+    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
         """
-        Override search para ocultar módulos enterprise (to_buy=True) del catálogo.
+        Override search_read para ocultar módulos enterprise solo en vista de Apps.
+        NO afecta Settings ni otras vistas técnicas.
         """
-        # Agregar condición para ocultar módulos enterprise
-        domain = domain + [('to_buy', '=', False)]
+        # Detectar si la búsqueda viene de la vista de Apps (contexto específico)
+        context = self.env.context or {}
 
-        return super()._search(
-            domain,
+        # Solo aplicar filtro si viene del menú de Apps (no de Settings)
+        if context.get('search_default_app') or context.get('search_default_extra'):
+            # Usuario viendo Apps - ocultar enterprise
+            if domain is None:
+                domain = []
+            domain = domain + [('to_buy', '=', False)]
+
+        return super().search_read(
+            domain=domain,
+            fields=fields,
             offset=offset,
             limit=limit,
-            order=order,
-            access_rights_uid=access_rights_uid
+            order=order
         )
 
     def button_immediate_uninstall(self):
