@@ -26,28 +26,31 @@ class SaasPlanManager(models.Model):
     def get_plan_limits(self, force_refresh=False):
         """
         Obtener límites del plan consultando al servidor principal.
-        Usa caché para evitar consultas constantes.
+        Siempre consulta en tiempo real, usa caché solo como fallback si falla.
 
-        :param force_refresh: Forzar consulta aunque haya caché
+        :param force_refresh: No usado, se mantiene por compatibilidad
         :return: dict con límites
         """
-        # Intentar usar caché si es reciente (menos de 1 hora)
+        # SIEMPRE consultar servidor primero (tiempo real)
+        limits = self._fetch_limits_from_server()
+
+        # Si obtuvo límites válidos, retornarlos
+        if limits and limits.get('max_users', -1) > 0:
+            return limits
+
+        # FALLBACK: Si falló conexión, usar caché como último recurso
         cache = self.search([], limit=1)
+        if cache and cache.cached_limits:
+            try:
+                cached_limits = json.loads(cache.cached_limits)
+                _logger.warning(f"⚠️ Using cached limits as fallback (server unreachable)")
+                return cached_limits
+            except (json.JSONDecodeError, TypeError):
+                _logger.error("Cache corrupted and server unreachable")
 
-        if cache and not force_refresh and cache.last_sync:
-            # Verificar si el caché es reciente
-            if isinstance(cache.last_sync, datetime):
-                time_diff = datetime.now() - cache.last_sync
-                if time_diff.total_seconds() < 3600:  # 1 hora
-                    try:
-                        limits = json.loads(cache.cached_limits)
-                        _logger.info(f"✅ Using cached plan limits (age: {time_diff.total_seconds()}s)")
-                        return limits
-                    except (json.JSONDecodeError, TypeError):
-                        _logger.warning("Cache corrupted, fetching fresh limits")
-
-        # Consultar al servidor principal
-        return self._fetch_limits_from_server()
+        # Si todo falla, límites de emergencia
+        _logger.error("No limits available, using emergency limits")
+        return self._get_emergency_limits()
 
     def _fetch_limits_from_server(self):
         """
