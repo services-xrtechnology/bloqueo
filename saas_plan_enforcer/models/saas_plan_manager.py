@@ -74,17 +74,20 @@ class SaasPlanManager(models.Model):
             if response.status_code == 200:
                 data = response.json()
 
-                if data.get('success'):
-                    limits = data.get('limits', {})
+                # Extraer result de estructura JSONRPC si existe
+                result = data.get('result', data)
+
+                if result.get('success'):
+                    limits = result.get('limits', {})
 
                     # Actualizar caché
-                    self._update_cache(limits, data.get('plan_name', 'Unknown'))
+                    self._update_cache(limits, result.get('plan_name', 'Unknown'))
 
-                    _logger.info(f"✅ Plan limits fetched successfully: {data.get('plan_name')}")
+                    _logger.info(f"✅ Plan limits fetched successfully: {result.get('plan_name')}")
                     return limits
                 else:
-                    _logger.error(f"API returned error: {data.get('error')}")
-                    return data.get('limits', self._get_emergency_limits())
+                    _logger.error(f"API returned error: {result.get('error')}")
+                    return result.get('limits', self._get_emergency_limits())
             else:
                 _logger.error(f"API call failed with status: {response.status_code}")
                 return self._get_emergency_limits()
