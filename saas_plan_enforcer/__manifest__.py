@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'SaaS Plan Enforcer',
-    'version': '17.0.1.0.1',
+    'version': '17.0.1.0.2',
     'category': 'Technical',
     'summary': 'Control de límites y acceso según plan de suscripción',
     'description': """
@@ -27,6 +27,7 @@ Funciona consultando al servidor principal via API usando el db_name.
 
         # Data
         'data/ir_config_parameter.xml',
+        'data/ir_cron.xml',
 
         # Views
         'views/ir_module_views.xml',
