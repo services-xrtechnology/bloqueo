@@ -160,3 +160,32 @@ class SaasPlanManager(models.Model):
                 'sticky': False,
             }
         }
+
+    @api.model
+    def _cron_sync_plan_limits(self):
+        """
+        Cron job nocturno para sincronizar límites del plan.
+        Se ejecuta cada noche a las 00:05 AM.
+        """
+        try:
+            # Consultar límites frescos del servidor
+            limits = self.get_plan_limits(force_refresh=True)
+
+            # Guardar límite de emails como parámetro local
+            config = self.env['ir.config_parameter'].sudo()
+            config.set_param('saas.plan.email_limit', str(limits.get('max_external_emails_per_day', 100)))
+            config.set_param('saas.plan.email_limit_last_sync', str(fields.Datetime.now()))
+
+            _logger.info(f"✅ Plan limits synced nightly: email_limit={limits.get('max_external_emails_per_day')}")
+
+            # Limpiar contadores de días anteriores
+            today_key = f"saas.email_counter.{fields.Date.today()}"
+            all_counters = config.search([('key', 'like', 'saas.email_counter.%')])
+            old_counters = all_counters.filtered(lambda p: p.key != today_key)
+
+            if old_counters:
+                _logger.info(f"🧹 Cleaned {len(old_counters)} old email counters")
+                old_counters.unlink()
+
+        except Exception as e:
+            _logger.error(f"Error syncing plan limits: {str(e)}")

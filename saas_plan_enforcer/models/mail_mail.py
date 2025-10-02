@@ -19,9 +19,20 @@ class MailMail(models.Model):
         Hook al crear email - validar límite diario de emails externos.
         """
         try:
-            # Obtener límites del plan
-            limits = self.env['saas.plan.manager'].get_plan_limits()
-            max_emails = limits.get('max_external_emails_per_day', -1)
+            # Obtener límite de emails desde parámetro local (sincronizado nocturnamente)
+            config = self.env['ir.config_parameter'].sudo()
+            max_emails_param = config.get_param('saas.plan.email_limit', False)
+
+            if max_emails_param:
+                # Usar límite sincronizado (sin consultar API)
+                max_emails = int(max_emails_param)
+            else:
+                # Fallback: Consultar API si no hay parámetro (primera vez)
+                limits = self.env['saas.plan.manager'].get_plan_limits()
+                max_emails = limits.get('max_external_emails_per_day', -1)
+                # Guardar para próximas veces
+                if max_emails > 0:
+                    config.set_param('saas.plan.email_limit', str(max_emails))
 
             # Si hay límite (-1 = ilimitado)
             if max_emails > 0:
