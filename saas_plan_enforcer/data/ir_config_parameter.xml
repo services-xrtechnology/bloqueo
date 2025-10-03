@@ -7,7 +7,14 @@
             <field name="value">https://robust-briefly-mink.ngrok-free.app</field>
         </record>
 
+        <!-- Límite de tamaño de archivo web (en bytes) - Controlado por Odoo nativo -->
+        <record id="web_max_file_upload_size" model="ir.config_parameter">
+            <field name="key">web.max_file_upload_size</field>
+            <field name="value">20971520</field>  <!-- 20 MB por defecto = 20 * 1024 * 1024 -->
+        </record>
+
         <!-- Nota: URL actual apunta a ngrok tunnel del servidor principal (puerto 8069) -->
         <!-- Para producción: Cambiar a la URL real del servidor principal -->
+        <!-- web.max_file_upload_size se sincroniza nocturnamente según el plan -->
     </data>
 </odoo>

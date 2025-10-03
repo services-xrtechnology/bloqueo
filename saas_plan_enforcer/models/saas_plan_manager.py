@@ -178,9 +178,17 @@ class SaasPlanManager(models.Model):
             config = self.env['ir.config_parameter'].sudo()
             config.set_param('saas.plan.email_limit', str(limits.get('max_external_emails_per_day', 100)))
             config.set_param('saas.plan.file_size_limit', str(limits.get('max_file_size_mb', 20)))
+
+            # Actualizar límite web nativo de Odoo (en bytes)
+            max_mb = limits.get('max_file_size_mb', 20)
+            if max_mb > 0:
+                max_bytes = max_mb * 1024 * 1024  # Convertir MB a bytes
+                config.set_param('web.max_file_upload_size', str(max_bytes))
+                _logger.info(f"📊 Updated web.max_file_upload_size to {max_mb}MB ({max_bytes} bytes)")
+
             config.set_param('saas.plan.limits_last_sync', str(fields.Datetime.now()))
 
-            _logger.info(f"✅ Plan limits synced nightly: emails={limits.get('max_external_emails_per_day')}, file_size={limits.get('max_file_size_mb')}MB")
+            _logger.info(f"✅ Plan limits synced nightly: emails={limits.get('max_external_emails_per_day')}, file_size={max_mb}MB")
 
             # Limpiar contadores de días anteriores
             today_key = f"saas.email_counter.{fields.Date.today()}"
