@@ -174,12 +174,13 @@ class SaasPlanManager(models.Model):
             # Consultar límites frescos del servidor
             limits = self.get_plan_limits(force_refresh=True)
 
-            # Guardar límite de emails como parámetro local
+            # Guardar límites como parámetros locales
             config = self.env['ir.config_parameter'].sudo()
             config.set_param('saas.plan.email_limit', str(limits.get('max_external_emails_per_day', 100)))
-            config.set_param('saas.plan.email_limit_last_sync', str(fields.Datetime.now()))
+            config.set_param('saas.plan.file_size_limit', str(limits.get('max_file_size_mb', 20)))
+            config.set_param('saas.plan.limits_last_sync', str(fields.Datetime.now()))
 
-            _logger.info(f"✅ Plan limits synced nightly: email_limit={limits.get('max_external_emails_per_day')}")
+            _logger.info(f"✅ Plan limits synced nightly: emails={limits.get('max_external_emails_per_day')}, file_size={limits.get('max_file_size_mb')}MB")
 
             # Limpiar contadores de días anteriores
             today_key = f"saas.email_counter.{fields.Date.today()}"
