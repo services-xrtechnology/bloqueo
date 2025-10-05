@@ -61,7 +61,8 @@ class ModuleOperationsController(http.Controller):
 
             # Construir comando de upgrade
             # db_name ya incluye .cloudpepper.site (ej: bas-00108.cloudpepper.site)
-            cmd = f"cd /var/odoo/{db_name} && sudo -u odoo venv/bin/python3 src/odoo-bin -c odoo.conf -d {db_name} --no-http --stop-after-init --update {module_name}"
+            # No usar sudo porque Odoo ya se ejecuta como usuario odoo
+            cmd = f"cd /var/odoo/{db_name} && venv/bin/python3 src/odoo-bin -c odoo.conf -d {db_name} --no-http --stop-after-init --update {module_name}"
 
             _logger.info(f"📤 Executing: {cmd}")
 
@@ -152,8 +153,8 @@ class ModuleOperationsController(http.Controller):
                 _logger.info(f"🔄 Pulling: {pull_cmd}")
                 subprocess.run(pull_cmd, shell=True, check=True, timeout=30)
 
-            # Instalar módulo con odoo-bin
-            install_cmd = f"cd /var/odoo/{db_name} && sudo -u odoo venv/bin/python3 src/odoo-bin -c odoo.conf -d {db_name} --no-http --stop-after-init --init {module_name}"
+            # Instalar módulo con odoo-bin (sin sudo, ya somos usuario odoo)
+            install_cmd = f"cd /var/odoo/{db_name} && venv/bin/python3 src/odoo-bin -c odoo.conf -d {db_name} --no-http --stop-after-init --init {module_name}"
 
             _logger.info(f"📤 Installing: {install_cmd}")
 
