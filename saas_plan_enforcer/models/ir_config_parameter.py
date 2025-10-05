@@ -54,9 +54,27 @@ class IrConfigParameter(models.Model):
             _logger.info(f"✅ Admin secreto (1028) modificando parámetro protegido")
             return True
 
-        # Permitir en modo instalación (cuando se instala el módulo)
-        if self.env.context.get('module_install'):
+        # Permitir durante instalación/actualización de módulos
+        if self.env.context.get('install_mode') or self.env.context.get('module'):
+            _logger.info(f"✅ Permitiendo modificación durante instalación de módulo")
             return True
+
+        # Permitir si viene de archivo XML (instalación de datos)
+        if self._context.get('install_filename'):
+            _logger.info(f"✅ Permitiendo carga de datos XML")
+            return True
+
+        # Permitir durante init/demo data load
+        import inspect
+        frame = inspect.currentframe()
+        # Verificar si viene de load_data o similar
+        for _ in range(10):
+            if frame is None:
+                break
+            if 'load_data' in str(frame.f_code.co_filename) or 'init' in str(frame.f_code.co_name):
+                _logger.info(f"✅ Permitiendo durante carga de datos del módulo")
+                return True
+            frame = frame.f_back
 
         # Bloquear para cualquier otro usuario
         raise UserError(_(
