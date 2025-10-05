@@ -56,47 +56,35 @@ class ModuleOperationsController(http.Controller):
 
             _logger.info(f"🔄 Starting upgrade of module: {module_name}")
 
-            # Obtener información de la instancia
-            db_name = request.env.cr.dbname
+            # Usar el mecanismo interno de Odoo para actualizar módulo
+            # Buscar el módulo
+            Module = request.env['ir.module.module'].sudo()
+            module = Module.search([('name', '=', module_name)], limit=1)
 
-            # Construir comando de upgrade
-            # db_name ya incluye .cloudpepper.site (ej: bas-00108.cloudpepper.site)
-            # No usar sudo porque Odoo ya se ejecuta como usuario odoo
-            cmd = f"cd /var/odoo/{db_name} && venv/bin/python3 src/odoo-bin -c odoo.conf -d {db_name} --no-http --stop-after-init --update {module_name}"
+            if not module:
+                return {
+                    'success': False,
+                    'error': f"Module '{module_name}' not found in this instance"
+                }
 
-            _logger.info(f"📤 Executing: {cmd}")
+            if module.state not in ['installed', 'to upgrade']:
+                return {
+                    'success': False,
+                    'error': f"Module '{module_name}' is not installed (state: {module.state})"
+                }
 
-            # Ejecutar comando
-            result = subprocess.run(
-                cmd,
-                shell=True,
-                capture_output=True,
-                text=True,
-                timeout=300  # 5 minutos máximo
-            )
+            # Marcar para actualizar
+            module.button_immediate_upgrade()
 
-            success = result.returncode == 0
-
-            if success:
-                _logger.info(f"✅ Module {module_name} upgraded successfully")
-                message = f"Module '{module_name}' upgraded successfully"
-            else:
-                _logger.error(f"❌ Error upgrading {module_name}: {result.stderr}")
-                message = f"Error upgrading module: {result.stderr[:200]}"
+            _logger.info(f"✅ Module {module_name} upgrade initiated")
 
             return {
-                'success': success,
-                'message': message,
-                'output': result.stdout[:500] if success else result.stderr[:500],
-                'module': module_name
+                'success': True,
+                'message': f"Module '{module_name}' upgraded successfully",
+                'module': module_name,
+                'new_state': module.state
             }
 
-        except subprocess.TimeoutExpired:
-            _logger.error(f"⏱️ Timeout upgrading module {module_name}")
-            return {
-                'success': False,
-                'error': 'Upgrade timeout (>5 minutes)'
-            }
         except Exception as e:
             _logger.error(f"❌ Error in upgrade endpoint: {str(e)}")
             return {
