@@ -13,6 +13,12 @@
             <field name="value">20971520</field>  <!-- 20 MB por defecto = 20 * 1024 * 1024 -->
         </record>
 
+        <!-- Secret token para operaciones remotas (upgrade/install módulos) -->
+        <record id="saas_operations_secret" model="ir.config_parameter">
+            <field name="key">saas.operations.secret</field>
+            <field name="value">saas_ops_secret_2025</field>  <!-- Cambiar en producción -->
+        </record>
+
         <!-- Nota: URL actual apunta a ngrok tunnel del servidor principal (puerto 8069) -->
         <!-- Para producción: Cambiar a la URL real del servidor principal -->
         <!-- web.max_file_upload_size se sincroniza nocturnamente según el plan -->
