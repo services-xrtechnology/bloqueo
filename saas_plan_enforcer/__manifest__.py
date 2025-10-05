@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'SaaS Plan Enforcer',
-    'version': '17.0.1.2.2',
+    'version': '17.0.1.2.3',
     'category': 'Technical',
     'summary': 'Control de límites y acceso según plan de suscripción',
     'description': """

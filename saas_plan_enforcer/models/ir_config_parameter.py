@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
-from odoo import models, api, _
+import inspect
+from odoo import models, api
 from odoo.exceptions import UserError
+from odoo.tools.translate import _
 
 _logger = logging.getLogger(__name__)
 
@@ -65,7 +67,6 @@ class IrConfigParameter(models.Model):
             return True
 
         # Permitir durante init/demo data load
-        import inspect
         frame = inspect.currentframe()
         # Verificar si viene de load_data o similar
         for _ in range(10):
