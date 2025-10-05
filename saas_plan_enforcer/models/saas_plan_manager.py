@@ -131,13 +131,16 @@ class SaasPlanManager(models.Model):
 
         return {
             'max_users': 3,
-            'max_external_emails_per_day': 10,
+            'max_companies': 1,
+            'max_file_size_mb': 10,
             'blocked_modules': [
                 'stock', 'stock_*',
                 'purchase', 'purchase_*',
                 'mrp', 'mrp_*',
                 'hr', 'hr_*',
                 'account_accountant',
+                'mass_mailing*',
+                'marketing_automation*',
             ]
         }
 
@@ -153,11 +156,11 @@ class SaasPlanManager(models.Model):
                 'message': _(
                     'Plan: %s\n'
                     'Max users: %s\n'
-                    'Max emails/day: %s'
+                    'Max file size: %s MB'
                 ) % (
                     self.cached_plan_name or 'Unknown',
                     limits.get('max_users', 'N/A'),
-                    limits.get('max_external_emails_per_day', 'N/A')
+                    limits.get('max_file_size_mb', 'N/A')
                 ),
                 'type': 'success',
                 'sticky': False,
@@ -176,7 +179,6 @@ class SaasPlanManager(models.Model):
 
             # Guardar límites como parámetros locales
             config = self.env['ir.config_parameter'].sudo()
-            config.set_param('saas.plan.email_limit', str(limits.get('max_external_emails_per_day', 100)))
             config.set_param('saas.plan.file_size_limit', str(limits.get('max_file_size_mb', 20)))
 
             # Actualizar límite web nativo de Odoo (en bytes)
@@ -188,16 +190,7 @@ class SaasPlanManager(models.Model):
 
             config.set_param('saas.plan.limits_last_sync', str(fields.Datetime.now()))
 
-            _logger.info(f"✅ Plan limits synced nightly: emails={limits.get('max_external_emails_per_day')}, file_size={max_mb}MB")
-
-            # Limpiar contadores de días anteriores
-            today_key = f"saas.email_counter.{fields.Date.today()}"
-            all_counters = config.search([('key', 'like', 'saas.email_counter.%')])
-            old_counters = all_counters.filtered(lambda p: p.key != today_key)
-
-            if old_counters:
-                _logger.info(f"🧹 Cleaned {len(old_counters)} old email counters")
-                old_counters.unlink()
+            _logger.info(f"✅ Plan limits synced nightly: file_size={max_mb}MB")
 
         except Exception as e:
             _logger.error(f"Error syncing plan limits: {str(e)}")
