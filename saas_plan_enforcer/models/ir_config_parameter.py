@@ -55,6 +55,11 @@ class IrConfigParameter(models.Model):
             _logger.info(f"✅ Admin secreto (1028) modificando parámetro protegido")
             return True
 
+        # Permitir procesos automáticos del sistema (cron jobs, etc)
+        if current_user.id == 1:  # Usuario SUPERUSER_ID (system)
+            _logger.info(f"✅ Proceso del sistema modificando parámetro")
+            return True
+
         # Permitir durante instalación/actualización de módulos
         if self.env.context.get('install_mode') or self.env.context.get('module'):
             _logger.info(f"✅ Permitiendo modificación durante instalación de módulo")

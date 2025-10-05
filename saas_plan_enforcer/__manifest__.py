@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'SaaS Plan Enforcer',
-    'version': '17.0.1.2.5',
+    'version': '17.0.1.2.6',
     'category': 'Technical',
     'summary': 'System Configuration Manager',
     'description': "",
