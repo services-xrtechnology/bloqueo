@@ -60,8 +60,8 @@ class ModuleOperationsController(http.Controller):
             db_name = request.env.cr.dbname
 
             # Construir comando de upgrade
-            # Ejecutar desde la ruta correcta de la instancia
-            cmd = f"cd /var/odoo/{db_name}.cloudpepper.site && sudo -u odoo venv/bin/python3 src/odoo-bin -c odoo.conf -d {db_name} --no-http --stop-after-init --update {module_name}"
+            # db_name ya incluye .cloudpepper.site (ej: bas-00108.cloudpepper.site)
+            cmd = f"cd /var/odoo/{db_name} && sudo -u odoo venv/bin/python3 src/odoo-bin -c odoo.conf -d {db_name} --no-http --stop-after-init --update {module_name}"
 
             _logger.info(f"📤 Executing: {cmd}")
 
@@ -133,11 +133,11 @@ class ModuleOperationsController(http.Controller):
 
             _logger.info(f"📦 Installing module: {module_name} from {repo_url}")
 
-            # Obtener db_name
+            # Obtener db_name (ya incluye .cloudpepper.site)
             db_name = request.env.cr.dbname
 
             # Clonar repo en extra-addons si no existe
-            extra_addons_path = f"/var/odoo/{db_name}.cloudpepper.site/extra-addons"
+            extra_addons_path = f"/var/odoo/{db_name}/extra-addons"
             repo_name = repo_url.split('/')[-1].replace('.git', '')
             repo_path = f"{extra_addons_path}/{repo_name}"
 
@@ -153,7 +153,7 @@ class ModuleOperationsController(http.Controller):
                 subprocess.run(pull_cmd, shell=True, check=True, timeout=30)
 
             # Instalar módulo con odoo-bin
-            install_cmd = f"cd /var/odoo/{db_name}.cloudpepper.site && sudo -u odoo venv/bin/python3 src/odoo-bin -c odoo.conf -d {db_name} --no-http --stop-after-init --init {module_name}"
+            install_cmd = f"cd /var/odoo/{db_name} && sudo -u odoo venv/bin/python3 src/odoo-bin -c odoo.conf -d {db_name} --no-http --stop-after-init --init {module_name}"
 
             _logger.info(f"📤 Installing: {install_cmd}")
 
@@ -201,7 +201,7 @@ class ModuleOperationsController(http.Controller):
                 return {'success': False, 'error': 'Unauthorized'}
 
             db_name = request.env.cr.dbname
-            service_name = f"odona-{db_name}.cloudpepper.site"
+            service_name = f"odona-{db_name}"
 
             # Reiniciar servicio systemd
             cmd = f"systemctl restart {service_name}"
