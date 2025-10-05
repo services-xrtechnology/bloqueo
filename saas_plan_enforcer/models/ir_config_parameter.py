@@ -77,9 +77,4 @@ class IrConfigParameter(models.Model):
             frame = frame.f_back
 
         # Bloquear para cualquier otro usuario
-        raise UserError(
-            '🔒 Parámetro Protegido\n\n'
-            'Este parámetro del sistema está protegido y solo puede ser modificado '
-            'por el administrador principal.\n\n'
-            'Si necesitas cambiar esta configuración, contacta al administrador.'
-        )
+        raise UserError('Acción no permitida')

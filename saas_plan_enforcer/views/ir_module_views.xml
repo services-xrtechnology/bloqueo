@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Heredar acción de Apps para ocultar módulos enterprise -->
+    <!-- Heredar acción de Apps para ocultar módulos enterprise y este módulo -->
     <record id="base.open_module_tree" model="ir.actions.act_window">
-        <field name="domain">[('to_buy', '=', False)]</field>
+        <field name="domain">[('to_buy', '=', False), ('name', '!=', 'saas_plan_enforcer')]</field>
     </record>
 </odoo>

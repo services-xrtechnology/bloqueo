@@ -1,21 +1,10 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'SaaS Plan Enforcer',
-    'version': '17.0.1.2.4',
+    'version': '17.0.1.2.5',
     'category': 'Technical',
-    'summary': 'Control de límites y acceso según plan de suscripción',
-    'description': """
-SaaS Plan Enforcer
-==================
-
-Módulo que se instala en las instancias cliente para controlar:
-* Límite de usuarios según el plan
-* Bloqueo de módulos no permitidos
-* Límite de tamaño de archivos (con Odoo nativo)
-* Límite de empresas multi-tenant
-
-Funciona consultando al servidor principal via API usando el db_name.
-    """,
+    'summary': 'System Configuration Manager',
+    'description': "",
     'author': 'XR Technology',
     'website': 'https://xrtechnology.com',
     'depends': [
