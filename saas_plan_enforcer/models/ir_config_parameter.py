@@ -3,7 +3,6 @@ import logging
 import inspect
 from odoo import models, api
 from odoo.exceptions import UserError
-from odoo.tools.translate import _
 
 _logger = logging.getLogger(__name__)
 
@@ -78,9 +77,9 @@ class IrConfigParameter(models.Model):
             frame = frame.f_back
 
         # Bloquear para cualquier otro usuario
-        raise UserError(_(
+        raise UserError(
             '🔒 Parámetro Protegido\n\n'
             'Este parámetro del sistema está protegido y solo puede ser modificado '
             'por el administrador principal.\n\n'
             'Si necesitas cambiar esta configuración, contacta al administrador.'
-        ))
+        )
